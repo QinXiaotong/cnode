@@ -1,5 +1,5 @@
-// 导入MySQL服务器js文件
-const db = require('./db_helper');
+// 导入文件
+const userModel = require('../models/user');
 // 导入md5 模块
 const md5 = require('md5');
 
@@ -9,37 +9,36 @@ exports.showSignin = (req, res) => {
 }
 // 2. 处理登录请求
 exports.handleSignin = (req, res) => {
-    // 验证用户输入
-    db.query(
-        'select * from `users` where email=?',
-        req.body.email,
-        (err,results) => {
-            if (err) {
-                return res.send('服务器内部错误');
-            }
+    // 验证邮箱是否存在
+   userModel.getByEmail(req.body.email, (err, user) => {
+       if (err) {
+           return res.send('服务器内部错误');
+       }
 
-            if (results.length <= 0) {
-                // 邮箱不存在
-                return res.json({
-                    code : 401,
-                    msg : '邮箱不存在'
-                });
-            }
-            console.log(results);
-            const password = md5(req.body.password);
-            if (password !== results[0].password) {
-                // 密码错误
-                return res.json({
-                    code : 402,
-                    msg : '密码错误'
-                });
-            }
-            res.json({
-                code : 200,
-                msg : '登陆成功'
+       if (!user) {
+            return res.json({
+                code: 401,
+                msg: '邮箱不存在,请重新输入'
             })
-        }
-    )
+       }
+       // 验证密码
+
+       const password = md5(req.body.password);
+       if (password === user.password) {
+           delete user.password;
+           req.session.user = user;
+
+           res.json({
+               code: 200,
+               msg: '登陆成功'
+           });
+       } else {
+           res.json({
+               code: 402,
+               msg: '密码错误'
+           });
+       };
+   });
 
 }
 // 3. 展示注册页面
@@ -48,68 +47,55 @@ exports.showSigup = (req, res) => {
 }
 // 4. 处理注册请求
 exports.handleSigup = (req, res) => {
-    db.query(
-        // 验证邮箱是否重复
-        'select * from `users` where `email`=?',
-        req.body.email,
-        (err,results) => {
+    // 验证邮箱是否重复
+    userModel.getByEmail(req.body.email, (err, user) => {
+        if (err) {
+            return res.send('服务器内部错误1');
+        }
+
+        if (user) {
+            // user 是true的话是邮箱已经存在了
+            return res.render('signup.html', {
+                msg : '邮箱已经存在'
+            })
+        }
+        // 验证昵称是否重复
+
+        userModel.getByNickname(req.body.nickname, (err, user) => {
             if (err) {
-                return res.send('服务器内部错误1');
+                return res.send('服务器内部错误2');
             }
 
-            if (results.length > 0) {
-                res.render('signup.html', {
-                    msg : '邮箱已存在'
-                });
-                return;
+            if (user) {
+                return res.render('signup.html',{
+                    msg: '昵称已存在'
+                })
             }
-            // 验证用户名是否重复
-            db.query(
-                'select * from `users` where `nickname`=?',
-                req.body.nickname,
-                (err,results) => {
-                    if (err) {
-                        return res.send('服务器内部错误2');
-                    }
 
-                    if (results.length > 0) {
-                        res.render('signup.html',{
-                            msg : '用户名已存在'
-                        });
-                        return;
-                    }
-
-                    // 插入数据
-                    req.body.createdAt = new Date();
-                    req.body.password = md5(req.body.password);
-                    // 插入数据库
-                    db.query(
-                        'insert into `users` set ?',
-                        req.body,
-                        (err, results) => {
-                            if (err) {
-                                return res.send('服务器内部错误3');
-                            }
-
-                            if (results.affectedRows === 1) {
-                                // 注册成功
-                                res.render('signin.html');
-                            }else {
-                                res.render('signup.html',{
-                                    msg : '注册失败'
-                                })
-                                return;
-                            }
-                        }
-                    )
+            console.log(req.body);
+            // 转换数据
+            req.body.createdAt = new Date();
+            req.body.password = md5(req.body.password);
+            // 插入数据库
+            userModel.createUser(req.body, (err, isOK) => {
+                if (isOK) {
+                    res.redirect('/signin');
+                } else {
+                    res.render('signup.html', {
+                        msg: '注册失败，可能是网络繁忙'
+                    })
                 }
-            )
-        }  
-    )
+            })
+
+        })
+    })
 }
 // 5. 退出
 exports.handleSigout = (req, res) => {
-
+    // 摧毁session
+    req.session.destroy();
+    // 跳转到登录页面
+    res.redirect('/signin');
 }
 
 

@@ -20,5 +20,5 @@ router
     .post('/signin', userCtrl.handleSignin)
     .get('/signup', userCtrl.showSigup)
     .post('/signup', userCtrl.handleSigup)
-    .get('/sigout', userCtrl.handleSigout)
+    .get('/signout', userCtrl.handleSigout);
 
