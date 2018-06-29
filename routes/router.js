@@ -1,7 +1,7 @@
 const express = require('express');
 
 const indexCtrl = require('../controllers/index');
-//const topicCtrl = require('../controllers/topic');
+const topicCtrl = require('../controllers/topic');
 //const categoryCtrl = require('../controllers/category');
 const userCtrl = require('../controllers/user');
 
@@ -21,4 +21,13 @@ router
     .get('/signup', userCtrl.showSigup)
     .post('/signup', userCtrl.handleSigup)
     .get('/signout', userCtrl.handleSigout);
+
+router
+    .get('/topic/create', topicCtrl.showCreate)
+    .post('/topic/create', topicCtrl.handleCreate)
+    // 动态路由，可以传递参数
+    .get('/topic/:topicID', topicCtrl.showTopic)
+    .get('/topic/:topicID/edit', topicCtrl.showEdit)
+    .post('/topic/:topicID/edit', topicCtrl.handleEdit)
+    .get('/topic/:topicID/delete', topicCtrl.handleDelete)
 

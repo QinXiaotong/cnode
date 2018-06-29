@@ -36,6 +36,11 @@
       var formData = $(this).serialize()
       $.post('/topic/create', formData, function (data) {
         console.log(data)
+        if (data.code == 200) {
+          location.href = '/';
+        } esle {
+          alert(data.msg);
+        }
       })
     }
   </script>
