@@ -7,5 +7,5 @@ module.exports = {
       password: 'root',
       database: 'cnode'
     },
-    port: 3000
+    port: 3065
   };

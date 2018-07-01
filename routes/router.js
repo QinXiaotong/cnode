@@ -2,7 +2,7 @@ const express = require('express');
 
 const indexCtrl = require('../controllers/index');
 const topicCtrl = require('../controllers/topic');
-//const categoryCtrl = require('../controllers/category');
+const categoryCtrl = require('../controllers/category');
 const userCtrl = require('../controllers/user');
 
 // 创建路由对象
@@ -29,5 +29,5 @@ router
     .get('/topic/:topicID', topicCtrl.showTopic)
     .get('/topic/:topicID/edit', topicCtrl.showEdit)
     .post('/topic/:topicID/edit', topicCtrl.handleEdit)
-    .get('/topic/:topicID/delete', topicCtrl.handleDelete)
+    .get('/topic/:topicID/delete', topicCtrl.handleDelete);
 

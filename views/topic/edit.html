@@ -11,32 +11,56 @@
   <section class="container">
   <div class="row">
     <div class="col-md-5">
-      <form>
-        <div class="form-group">
-          <label for="exampleInputEmail1">选择板块</label>
-          <select class="form-control">
-            <option>分享</option>
-            <option>问答</option>
-            <option>招聘</option>
-            <option>客户端测试</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="exampleInputEmail1">标题</label>
-          <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email">
-        </div>
-        <div class="form-group">
-          <label for="exampleInputPassword1">内容</label>
-          <textarea class="form-control" rows="3"></textarea>
-        </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-      </form>
+        <form id="fid">
+            <!-- 通过隐藏域，记录话题的id -->
+            <input type="hidden" id="hd" value="{{ topic.id }}">
+            <div class="form-group">
+              <label for="exampleInputEmail1">选择板块</label>
+              <select name="categoryId" id="categoryId" class="form-control">
+                {{ each categories }}
+                  <!-- 判断当前遍历到的分类id ，是否和当前topic对象的分类id一直 -->
+                  {{ if $value.id === topic.categoryId }}
+                    <option selected value="{{ $value.id }}">{{ $value.name }}</option>
+                  {{ else }}
+                    <option value="{{ $value.id }}">{{ $value.name }}</option>
+                  {{ /if }}
+                {{ /each }}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="title">标题</label>
+              <input type="text" value="{{ topic.title }}" class="form-control" id="title" name="title">
+            </div>
+            <div class="form-group">
+              <label for="content">内容</label>
+              <textarea class="form-control" id="content" name="content" rows="10">{{ topic.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+        </form>
     </div>
   </div>
 </section>
   {{include '../_includes/footer.html'}}
   <script src="/node_modules/jquery/dist/jquery.js"></script>
   <script src="/node_modules/bootstrap/dist/js/bootstrap.js"></script>
+  <script>
+  
+    $('#fid').submit(function (e) {
+      // 阻止表单的默认行为
+      e.preventDefault();
+      // title content categoryId
+      var formData = $(this).serialize();
+      // 获取隐藏域中存储的话题id
+      var id = $('#hd').val();
+      $.post('/topic/' + id + '/edit', formData, function (data) {
+        if (data.code === 200) {
+          location.href = '/';
+        } else {
+          alert(data.msg);
+        }
+      });
+    })
+  </script>
 </body>
 
 </html>

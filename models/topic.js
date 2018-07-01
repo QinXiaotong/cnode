@@ -65,7 +65,7 @@ exports.delete = (id, callback) => {
 exports.update = (topic, callback) => {
     db.query(
     'update `topics` set `title`=?, `content`=?, categoryId=? where id=?',
-     topic,
+    [topic.title, topic.content, topic.categoryId, topic.id],
      (err, results) => {
          if (err) {
              return callback(err);
